@@ -1,0 +1,288 @@
+---
+title: "STAT 640 : Homework 7"
+author: "Pavan Malapati"
+format: html
+editor: visual
+---
+
+# Exercise
+
+## Exercise 3.18
+
+```{r}
+s <- read.csv("SOCELL.csv")
+head(s)
+```
+
+```{r}
+# Perform the one-sample t-test
+t_1 <- t.test(s$t1, mu = 4, alternative = "less")
+t_1
+```
+
+Since the p-value is greater then 0.05, we fail to reject the null hypothesis. there is not enough evidence to conclude that the mean ISC at time t1 is significantly smaller than 4,although the mean of x in one sample t-test is 3.955 which is closer to 4.
+
+# Additional Exercises
+
+## Exercise 1
+
+### a.
+
+$$f(x|\theta) = \theta x^{\theta−1}$$ where $0 < x < 1$, $0 < \theta$, and 0 otherwise. The model is $Beta(\theta, 1)$, where $\theta$ is the parameter of interest.
+
+```{r}
+library(fitdistrplus)
+n <- 100
+theta <- 0.21
+x <- rbeta(n, theta, 1)
+plotdist(x)
+fit <- fitdist(x, "beta", start = list(shape1 = 1), fix.arg = list(shape2 = 1))
+summary(fit)
+llplot(fit, pal.col = heat.colors(100), fit.show = TRUE)
+fit$estimate
+fit$sd
+confint(fit)
+```
+
+Compare with the math. Estimate
+
+```{r}
+theta.hat <- -mean(log(x))^{-1}
+theta.hat
+```
+
+Estimate AV
+
+```{r}
+av.hat <- theta.hat^2/n
+av.hat
+
+se.hat <- sqrt(av.hat)
+se.hat
+
+confint <- c(theta.hat - 1.96*se.hat, theta.hat + 1.96*se.hat)
+confint
+```
+
+### b.
+
+$$f(x|\theta) = (\theta + 1) x^{−\theta−2}$$ where $1 < x$, $0 < \theta$, and 0 otherwise. The model is $Pareto( (\theta+1), 1)$, where $\theta$ is the parameter of interest.
+
+```{r}
+library(fitdistrplus)
+library(Pareto)
+
+n <- 100
+theta <- 2.18
+x <- rPareto(n, t = 1, alpha = (theta + 1))
+plotdist(x)
+fit <- fitdist(x, dPareto, start = list(alpha = 10), fix.arg = list(t = 1))
+summary(fit)
+llplot(fit, pal.col = heat.colors(100), fit.show = TRUE)
+fit$estimate 
+fit$sd
+confint(fit)
+```
+
+Compare with the math. Note: $\theta = \alpha - 1$. So subtract 1 from the MLE and from the Confidence Interval to the the MLE and CI for $\theta$.
+
+Estimate
+
+```{r}
+theta.hat <- (n/sum(log(x))) - 1
+theta.hat
+```
+
+Estimate AV
+
+```{r}
+av.hat <- ((theta.hat+1)^2)/n
+av.hat
+
+se.hat <- sqrt(av.hat)
+se.hat
+
+confint <- c(theta.hat - 1.96*se.hat, theta.hat + 1.96*se.hat) 
+confint
+```
+
+### c.
+
+$$f(x|\theta) = \theta^{2} x e^{−\theta x}$$ where $0 < x$, $0 < \theta$, and 0 otherwise. The model is $Gamma(2, \theta)$, where $\theta$ is the parameter of interest.
+
+```{r}
+library(fitdistrplus)
+
+n <- 100
+theta <- 2.18
+x <- rgamma(n, shape = 2, rate = theta)
+plotdist(x)
+fit <- fitdist(x, "gamma", start = list(rate = 2), fix.arg = list(shape = 2))
+summary(fit)
+llplot(fit, pal.col = heat.colors(100), fit.show = TRUE)
+fit$estimate
+fit$sd
+confint(fit)
+```
+
+Compare with the math.
+
+Estimate
+
+```{r}
+theta.hat <- 2/mean(x)
+theta.hat
+```
+
+Estimate AV
+
+```{r}
+av.hat <- (theta.hat^2)/(2*n)
+av.hat
+
+se.hat <- sqrt(av.hat)
+se.hat
+
+confint <- c(theta.hat - 1.96*se.hat, theta.hat + 1.96*se.hat)
+confint
+```
+
+### d.
+
+$$f(x|\theta) = \theta(1 − \theta)^{x−1}$$ for $x = 1, 2,...$, $0 < \theta < 1$, and 0 otherwise Note that the model given is for $X =$ number of trials until the first success $$
+f(x|\theta) = \theta (1-\theta)^{x-1}
+$$ where $x = 1, 2, 3, \ldots$. But the model in R is for $Y = X - 1 =$ number of failures before the first success $$
+f(x|\theta) = \theta (1-\theta)^{x}
+$$ where $x = 0, 1, 2, 3, \ldots$. The model is $Geometric(\theta)$, where $\theta$ is the parameter of interest. Use the model in R.
+
+```{r}
+library(fitdistrplus)
+
+n <- 100
+theta <- 0.21
+x <- rgeom(n, theta)
+plotdist(x)
+fit <- fitdist(x, "geom", start = list(prob = 0.5))
+summary(fit)
+llplot(fit, pal.col = heat.colors(100), fit.show = TRUE)
+fit$estimate
+fit$sd
+confint(fit)
+```
+
+Compare with the math. Since the model is different, we need to adjust the math.\
+The MLE is $\hat{\theta } = \frac{1}{\bar{x} + 1}$. Estimate
+
+```{r}
+theta.hat <- (mean(x) +  1)^{-1}
+theta.hat
+```
+
+Estimate AV
+
+```{r}
+av.hat <- (theta.hat^2)*(1-theta.hat)/n
+av.hat
+
+se.hat <- sqrt(av.hat)
+se.hat
+
+confint <- c(theta.hat - 1.96*se.hat, theta.hat + 1.96*se.hat)
+confint
+```
+
+##Exercise 2
+
+2.  In a study of bowhead whales the time for a sample of whales to swim a distance of 1km was recorded. The data is contained in the file $whale.txt$. The distribution of the times $t_i$ is to be fit using the Gamma distribution with density $$
+    f(t) = \frac{1}{\Gamma(\alpha) \beta^\alpha} t^{\alpha - 1} e^{-t/\beta}
+    $$ for $t_i > 0$, and where $\alpha > 0$ and $\beta > 0$ are parameters to be estimated. The data is contained in the file $whale.txt$. Use the $\textbf{\textsf{R}}$ package *fitdistrplus* to fit the following models to the whale time data.
+
+<!-- -->
+
+(a) Make a histogram of the values of $t_i$. Does the Gamma distribution appear to be a good model to fit to these data?
+
+**Answer:** The histogram of the whale times is shown below. The data appears to be right-skewed, which is consistent with the Gamma distribution.
+
+However, the data does not have a mode away from 0, so maybe the Exponential distribution is a better model for the data.
+
+Read the data into R.
+
+```{r}
+whale <- read.table("whale.txt", header = TRUE)
+head(whale$time)
+```
+
+```{r}
+library(fitdistrplus)
+
+plotdist(whale$time, histo = TRUE, demp = TRUE)
+```
+
+(b) Fit the Gamma distribution to the data using the *fitdist()* function from the $\textbf{\textsf{R}}$ package *fitdistrplus*. Make a table to summarize the results of the fit.
+    i.  What are the maximum likelihood estimates of $\alpha$ and $\beta$?
+    ii. What is the asymptotic standard error of the maximum likelihood estimate of $\alpha$ and $\beta$?
+    iii. Calculate a asymptotic 95% confidence interval for $\alpha$ and $\beta$.
+    iv. What is the value of the log likelihood function at the maximum likelihood estimates of $\alpha$ and $\beta$? Plot the log-likelihood function.
+    v.  What is the value Akaike Information Criterion (AIC) for the fitted model?
+
+**Answer:**
+
+| parameter | MLE  | SE  | 95% CI      | logLik    | AIC      |
+|-----------|------|-----|-------------|-----------|----------|
+| $\alpha$  | 1.6  | .14 | (1.33,1.87) | -90.89708 | 185.7942 |
+| $\beta$   | 2.67 | .28 | (2.12,3.22) |           |          |
+
+: MLE Gamma model
+
+```{r}
+fit.gam <- fitdist(whale$time, "gamma", method = "mle")
+
+summary(fit.gam)
+
+llplot(fit.gam, pal.col = heat.colors(100), fit.show = TRUE)
+```
+
+```{r}
+confint(fit.gam)
+```
+
+(c) Suppose the parameter $\alpha = 1$, what model is the model? Fit the model to the data. Make a table to summarize the results of the fit.
+    i.  What are the maximum likelihood estimates of $\beta$?
+    ii. What is the asymptotic standard error of the maximum likelihood estimate of $\beta$?
+    iii. Calculate a asymptotic 95% confidence intervals for $\beta$.
+    iv. What is the value of the log likelihood function at the maximum likelihood estimates of $\beta$? Plot the log-likelihood function.
+    v.  What is the value Akaike Information Criterion (AIC) for the fitted model?
+
+**Answer:**
+
+| parameter | MLE  | SE  | 95% CI      | logLik    | AIC      |
+|-----------|------|-----|-------------|-----------|----------|
+| $\beta$   | 1.66 | .11 | (1.44,1.88) | -103.4578 | 208.9157 |
+
+: MLE Exponential model
+
+```{r}
+fit.exp <- fitdist(whale$time, "exp", method = "mle")
+
+summary(fit.exp)
+
+llplot(fit.exp, pal.col = heat.colors(100), fit.show = TRUE)
+```
+
+```{r}
+confint(fit.exp)
+```
+
+(d) Compare the fitted models using the *denscomp()* function from the $\textbf{\textsf{R}}$ package *fitdistrplus*. Which model is the better model? Justify your answer.
+
+**Answer:** The Gamma model is a better fit to the data than the Exponential model. The AIC for the Gamma model is 185.7942, which is lower than the AIC for the Exponential model, 208.9157.
+
+```{r}
+denscomp(list(fit.gam, fit.exp), legendtext = c("Gamma", "Exponential"))
+```
+
+(e) Using the asymptotic 95% confidence interval for parameter $\alpha$ inthe Gamma model, test the null hyptothesis that $\alpha = 1$ at the 5% level of significance. What is your conclusion?
+
+**Answer:** The asymptotic 95% confidence interval for $\alpha$ is (1.32, 1.86). Since 1 is not in the confidence interval, we reject the null hypothesis that $\alpha = 1$ at the 5% level of significance.
+
+This is further evidence that the Gamma model is a better fit to the data than the Exponential model.
